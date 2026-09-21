@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="300">
+    <title>Dashboard de Análise - Position Metrics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <div class="logo"><i class="fas fa-chart-bar"></i> Dashboard de Análise - Position Metrics</div>
+                <div class="nav-menu">
+                    <a href="elite.html"><i class="fas fa-trophy"></i> Elite</a>
+                    <a href="index.html"><i class="fas fa-tachometer-alt"></i> Operacional</a>
+                    <a href="position_metrics.html" class="active"><i class="fas fa-chart-bar"></i> Análise</a>
+                </div>
+            </div>
+            <div class="timestamp"><i class="far fa-clock"></i> Última atualização: 2026-05-23 14:44:07 | Auto-refresh: 5 min</div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="label"><i class="fas fa-layer-group"></i> Posições Abertas</div>
+                <div class='value'>1</div>
+            </div>
+            <div class="metric-card">
+                <div class="label"><i class="fas fa-exchange-alt"></i> Total de Trades</div>
+                <div class='value'>100</div>
+            </div>
+            <div class="metric-card positive">
+                <div class="label"><i class="fas fa-percentage"></i> Win Rate</div>
+                <div class='value'>49%</div>
+            </div>
+            <div class='metric-card negative'>
+                <div class="label"><i class="fas fa-dollar-sign"></i> PnL Total</div>
+                <div class='value'>$-612.72</div>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="panel-header"><i class="fas fa-chart-line"></i> Posições Abertas</div>
+            <div class="panel-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Market</th>
+                        <th>Side</th>
+                        <th>Entry</th>
+                        <th>Current</th>
+                        <th>PnL%</th>
+                        <th>Leverage</th>
+                        <th>Liquidation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>BNBUSDT</strong></td>
+                        <td><span class='badge long'>LONG</span></td>
+                        <td>$647.06</td>
+                        <td>$648.32</td>
+                        <td class='positive'>0.19%</td>
+                        <td>50x</td>
+                        <td>$0</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

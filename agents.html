@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="300">
+<title>ManuHeadFund — Agents Mission Control</title>
+<script src="manu_data.js"></script>
+<script src="manu_data.enc.js"></script>
+<script src="unlock.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0e14; color: #e6edf3; font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 13px; }
+
+  header { background: #0d1117; border-bottom: 1px solid #1f2733; padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 15px; color: #58a6ff; font-weight: 600; letter-spacing: 1px; }
+  header .sub { color: #495766; font-size: 11px; }
+  #status-dot { width: 8px; height: 8px; border-radius: 50%; background: #3fb950; display: inline-block; margin-right: 8px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  header a { color: #495766; text-decoration: none; font-size: 11px; }
+  header a:hover { color: #58a6ff; }
+
+  .topbar { display: flex; gap: 18px; padding: 10px 22px; background: #0d1117; border-bottom: 1px solid #1f2733; font-size: 12px; flex-wrap: wrap; }
+  .topbar .kv { color: #8b949e; }
+  .topbar .kv b { color: #e6edf3; font-weight: 600; }
+  .green { color: #3fb950; } .red { color: #f85149; } .yellow { color: #d29922; } .blue { color: #58a6ff; } .purple { color: #bc8cff; } .gray { color: #6e7681; } .orange { color: #f0883e; }
+
+  /* pipeline */
+  .pipeline { padding: 26px 22px 10px; overflow-x: auto; }
+  .pipe-row { display: flex; align-items: stretch; gap: 0; min-width: 900px; }
+  .node { flex: 1; background: #0d1117; border: 1px solid #1f2733; border-radius: 10px; padding: 12px 14px; position: relative; min-width: 130px; }
+  .node .name { font-size: 11px; letter-spacing: 1.5px; color: #8b949e; margin-bottom: 6px; }
+  .node .big { font-size: 26px; font-weight: 700; line-height: 1; }
+  .node .small { font-size: 10px; color: #495766; margin-top: 6px; min-height: 24px; }
+  .node.active { border-color: #2f81f7; box-shadow: 0 0 12px rgba(47,129,247,.15); }
+  .arrow { display: flex; align-items: center; color: #2f3a4a; font-size: 18px; padding: 0 6px; }
+
+  .laterals { display: flex; gap: 14px; padding: 14px 22px; flex-wrap: wrap; }
+  .lat { background: #0d1117; border: 1px solid #1f2733; border-radius: 10px; padding: 10px 16px; display: flex; gap: 14px; align-items: center; }
+  .lat .name { font-size: 10px; letter-spacing: 1.5px; color: #8b949e; }
+  .lat .val { font-size: 20px; font-weight: 700; }
+
+  /* feed */
+  .feed-wrap { padding: 8px 22px 30px; }
+  .feed-title { font-size: 11px; letter-spacing: 1.5px; color: #495766; padding: 12px 0 8px; border-bottom: 1px solid #1f2733; margin-bottom: 4px; }
+  .ev { display: grid; grid-template-columns: 130px 90px 110px 1fr; gap: 10px; padding: 5px 0; border-bottom: 1px solid #11161f; font-size: 12px; align-items: baseline; }
+  .ev .ts { color: #495766; font-size: 11px; }
+  .ev .agent { font-weight: 700; font-size: 11px; letter-spacing: 1px; }
+  .ev .mkt { color: #e6edf3; font-weight: 600; }
+  .ev .det { color: #8b949e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .no-data { color: #495766; font-style: italic; padding: 16px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span id="status-dot"></span>MANUHEADFUND · AGENTS MISSION CONTROL</h1>
+  <div style="display:flex;gap:16px;align-items:center">
+    <span class="sub" id="last-update">carregando…</span>
+    <a href="manu.html">→ dashboard clássico</a>
+  </div>
+</header>
+
+<div class="topbar" id="topbar"></div>
+
+<div class="pipeline">
+  <div class="pipe-row" id="pipe-row"></div>
+</div>
+<div class="laterals" id="laterals"></div>
+
+<div class="feed-wrap">
+  <div class="feed-title">⌁ FEED — DECISÕES DOS AGENTES (mais recente primeiro)</div>
+  <div id="feed"><div class="no-data">carregando…</div></div>
+</div>
+
+<script>
+const AGENT_COLORS = {
+  SCANNER: 'blue', MESA: 'purple', MCE: 'orange', MENTOR: 'yellow',
+  TORI: 'orange', GUARD: 'gray', EXECUTOR: 'green', TRAILING: 'blue', RISK_AUDIT: 'red'
+};
+
+function colorOf(ev) {
+  if (ev.agent === 'EXECUTOR') return 'green';
+  if (ev.action && /VETAR|BLOCK|SKIP/.test(ev.action)) return 'red';
+  if (ev.action === 'LOCKED') return 'green';
+  return AGENT_COLORS[ev.agent] || 'gray';
+}
+
+function node(name, big, bigCls, small) {
+  return `<div class="node"><div class="name">${name}</div><div class="big ${bigCls}">${big}</div><div class="small">${small}</div></div>`;
+}
+
+function render() {
+  const d = (typeof MANU_DATA !== 'undefined') ? MANU_DATA : null;
+  if (!d) { document.getElementById('last-update').textContent = 'sem dados'; return; }
+
+  // topbar
+  const tm = d.trading_metrics || {};
+  const cap = d.capital || {};
+  const reg = d.market_regime || {};
+  document.getElementById('topbar').innerHTML = `
+    <span class="kv">CAPITAL <b>$${(cap.total ?? 0).toLocaleString()}</b></span>
+    <span class="kv">REGIME <b class="${String(reg.regime).includes('BEAR') ? 'red' : 'green'}">${reg.regime ?? '—'}</b></span>
+    <span class="kv">PNL REALIZADO <b class="${(tm.total_pnl_usd ?? 0) >= 0 ? 'green' : 'red'}">$${tm.total_pnl_usd ?? '—'}</b></span>
+    <span class="kv">WIN RATE <b>${tm.win_rate ?? '—'}%</b></span>
+    <span class="kv">TRADES FECHADOS <b>${tm.closed_trades ?? '—'}</b></span>`;
+
+  const flow = d.agent_flow || {};
+  const s = flow.stats || {};
+
+  // pipeline principal: SCANNER → MESA → MCE → MENTOR → EXECUTOR
+  const arrow = `<div class="arrow">›</div>`;
+  document.getElementById('pipe-row').innerHTML =
+    node('SCANNER · TRIAGEM', s.analisados ?? 0, 'blue', 'sinais analisados (48h)') + arrow +
+    node('MESA · DEBATE', (s.analisados ?? 0), 'purple', 'consensos emitidos') + arrow +
+    node('MCE · CONTEXTO', s.mce_block ?? 0, 'orange', 'bloqueios por contexto') + arrow +
+    node('MENTOR · VETO', s.mentor_veto ?? 0, 'yellow', 'vetos com tese escrita') + arrow +
+    node('EXECUTOR · LIVE', s.executados ?? 0, 'green', 'ordens reais na CoinEx');
+
+  // laterais: gates + pos-trade
+  document.getElementById('laterals').innerHTML = `
+    <div class="lat"><span class="name">TORI · TRENDLINE</span><span class="val red">${s.tori_block ?? 0}</span><span class="name">skips técnicos</span></div>
+    <div class="lat"><span class="name">GUARDS · SAFETY</span><span class="val gray">${s.guard_block ?? 0}</span><span class="name">dedup/caps/market-safety</span></div>
+    <div class="lat"><span class="name">TRAILING · PÓS-TRADE</span><span class="val green">${s.protegidos ?? 0}</span><span class="name">posições com lucro travado</span></div>
+    <div class="lat"><span class="name">WHALE TAPE</span><span class="val blue">${(d.whale_signals || []).filter(w => w.signal !== 'NEUTRAL').length}</span><span class="name">sinais não-neutros</span></div>`;
+
+  // feed
+  const evs = flow.events || [];
+  if (!evs.length) { document.getElementById('feed').innerHTML = '<div class="no-data">sem eventos recentes</div>'; }
+  else {
+    document.getElementById('feed').innerHTML = evs.map(e => {
+      const c = colorOf(e);
+      const ts = String(e.ts).replace('T', ' ').replace('Z', '').substring(5, 16);
+      return `<div class="ev"><span class="ts">${ts}</span><span class="agent ${c}">${e.agent}</span><span class="mkt">${e.market}</span><span class="det"><span class="${c}">${e.action}</span> · ${e.detail ?? ''}</span></div>`;
+    }).join('');
+  }
+
+  document.getElementById('last-update').textContent = 'atualizado: ' + (d.timestamp ?? '—');
+}
+window.onDataReady = render;
+setInterval(() => { if (typeof MANU_DATA !== 'undefined' || window.MANU_DATA) render(); }, 60000);
+</script>
+</body>
+</html>

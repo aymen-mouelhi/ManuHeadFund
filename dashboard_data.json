@@ -1,0 +1,64 @@
+{
+  "trading_metrics": {
+    "trades_24h": 0,
+    "trades_7d": 0,
+    "trades_30d": 0,
+    "total_pnl": 0.0,
+    "win_rate": 0.0
+  },
+  "mentor_decisions": {
+    "count": 0,
+    "last_decision": "N/A",
+    "avg_confidence": 0
+  },
+  "mesa_consensus": {
+    "cycles_today": 0,
+    "avg_score": 0,
+    "top_market": "N/A"
+  },
+  "market_regime": {
+    "regime": "BULL",
+    "phase": "live",
+    "bias": "BULLISH"
+  },
+  "promotion_pipeline": {
+    "tier_a": 0,
+    "tier_b": 0,
+    "tier_c": 0,
+    "tier_d": 0
+  },
+  "fqs_distribution": {
+    "quality": 0,
+    "acceptable": 0,
+    "avoid": 0,
+    "unknown": 0
+  },
+  "llm_costs": {
+    "today_usd": 0.0,
+    "month_usd": 0.0,
+    "provider": "groq"
+  },
+  "feedback_loop": {
+    "signals_today": 0,
+    "accuracy_7d": 0.0
+  },
+  "trailing_stop": {
+    "active_positions": 0,
+    "stops_updated_today": 0
+  },
+  "portfolio_metrics": {
+    "total_capital": 0.0,
+    "futures_capital": 0.0,
+    "spot_capital": 0.0,
+    "open_positions": 0,
+    "unrealized_pnl_futures": 0.0
+  },
+  "alerts": [
+    {
+      "type": "INFO",
+      "message": "Sistema operacional",
+      "ts": "2026-09-21T05:59:24.2818864+00:00"
+    }
+  ],
+  "generated_at": "2026-09-21T05:59:24.2818864+00:00"
+}
